@@ -4,52 +4,23 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrightnessHigh
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.example.tasksmanagerapp.models.Task
 import com.example.tasksmanagerapp.models.TaskCategory
@@ -70,41 +41,39 @@ fun TasksScreen(viewModel: TasksViewModel = TasksViewModel(LocalContext.current)
     MaterialTheme(
         colorScheme = if (isDarkTheme) darkColorScheme() else lightColorScheme()
     ) {
-        Scaffold (
+        Scaffold(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
-                    title = { Text("Gerenciador de Tarefas") },
+                    title = { Text("Gerenciador de Tarefas", fontWeight = FontWeight.Bold) },
                     actions = {
-                        IconButton (onClick = { viewModel.toggleTheme(context) }) {
+                        IconButton(onClick = { viewModel.toggleTheme(context) }) {
                             Icon(Icons.Default.BrightnessHigh, contentDescription = "Alternar Tema")
-
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF6200EE))
                 )
             }
         ) { paddingValues ->
-            Column (
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
                     .padding(16.dp)
             ) {
-                // Progress Indicator
-                Text("Progresso das Tarefas")
+                // Progresso das Tarefas
+                Text("Progresso das Tarefas", style = MaterialTheme.typography.bodyMedium)
                 LinearProgressIndicator(
                     progress = progress,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp)
-                        .padding(bottom = 8.dp)
+                        .padding(bottom = 8.dp),
+                    color = MaterialTheme.colorScheme.primary,
                 )
 
-
-
-                // Lista de tarefas
-                LazyColumn (modifier = Modifier.weight(1f)) {
+                // Lista de Tarefas
+                LazyColumn(modifier = Modifier.weight(1f)) {
                     items(tasks) { task ->
                         TaskItem(
                             task = task,
@@ -122,12 +91,11 @@ fun TasksScreen(viewModel: TasksViewModel = TasksViewModel(LocalContext.current)
                                     }
                                 }
                             }
-
                         )
                     }
                 }
 
-                // Adicionar nova tarefa
+                // Adicionar Nova Tarefa
                 AddTaskSection(onAddTask = { name, category, priority ->
                     viewModel.addTask(Task(name, false, category, priority))
                 })
@@ -145,13 +113,13 @@ fun TaskItem(task: Task, onToggleCompletion: () -> Unit, onDelete: () -> Unit) {
         TaskPriority.ALTA -> Color(0xFFFFCDD2)
     }
 
-    AnimatedVisibility (visible = true) {
-        Row (
+    AnimatedVisibility(visible = true) {
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 4.dp)
                 .background(backgroundColor, RoundedCornerShape(8.dp))
-                .pointerInput (Unit) {
+                .pointerInput(Unit) {
                     detectHorizontalDragGestures { _, _ ->
                         onDelete()
                     }
@@ -163,8 +131,12 @@ fun TaskItem(task: Task, onToggleCompletion: () -> Unit, onDelete: () -> Unit) {
             Text(
                 text = task.name,
                 modifier = Modifier.weight(1f),
-                color = if (task.isCompleted) Color.Gray else Color.Black
+                color = if (task.isCompleted) Color.Gray else Color.Black,
+                style = MaterialTheme.typography.bodyMedium.copy(textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None)
             )
+            IconButton(onClick = { onDelete() }) {
+                Icon(Icons.Filled.Close, contentDescription = "Excluir Tarefa")
+            }
         }
     }
 }
@@ -180,8 +152,12 @@ fun AddTaskSection(onAddTask: (String, TaskCategory, TaskPriority) -> Unit) {
             value = taskName,
             onValueChange = { taskName = it },
             label = { Text("Nova tarefa") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            shape = RoundedCornerShape(8.dp)
         )
+
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             DropdownMenuBox("Categoria", TaskCategory.values().map { it.name }) {
                 selectedCategory = TaskCategory.valueOf(it)
@@ -190,7 +166,8 @@ fun AddTaskSection(onAddTask: (String, TaskCategory, TaskPriority) -> Unit) {
                 selectedPriority = TaskPriority.valueOf(it)
             }
         }
-        Button (
+
+        Button(
             onClick = {
                 if (taskName.isNotBlank()) {
                     onAddTask(taskName, selectedCategory, selectedPriority)
@@ -199,7 +176,8 @@ fun AddTaskSection(onAddTask: (String, TaskCategory, TaskPriority) -> Unit) {
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp)
+                .padding(top = 8.dp),
+            shape = RoundedCornerShape(8.dp)
         ) {
             Text("Adicionar Tarefa")
         }
@@ -212,10 +190,10 @@ fun DropdownMenuBox(label: String, options: List<String>, onSelection: (String) 
     var selectedOption by remember { mutableStateOf(options.first()) }
 
     Box(modifier = Modifier.padding(4.dp)) {
-        OutlinedButton (onClick = { expanded = true }) {
+        OutlinedButton(onClick = { expanded = true }, shape = RoundedCornerShape(8.dp)) {
             Text("$label: $selectedOption")
         }
-        DropdownMenu (
+        DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
@@ -232,4 +210,3 @@ fun DropdownMenuBox(label: String, options: List<String>, onSelection: (String) 
         }
     }
 }
-
